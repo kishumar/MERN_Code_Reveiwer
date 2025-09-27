@@ -67,7 +67,7 @@ function App() {
           </div>
         </div>
         <div className="right" 
-        style={{ display: 'flex',  }}
+        
         >
           {loading ? (
             <div className="spinner"></div> // spinner while loading
