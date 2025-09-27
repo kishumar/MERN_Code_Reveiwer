@@ -1,4 +1,7 @@
- import { useState, useEffect } from 'react'
+ 
+
+
+import { useState, useEffect } from 'react'
 import "prismjs/themes/prism-tomorrow.css"
 import Editor from "react-simple-code-editor"
 import prism from "prismjs"
@@ -9,20 +12,27 @@ import axios from 'axios'
 import './App.css'
 
 function App() {
-  const [ count, setCount ] = useState(0)
-  const [ code, setCode ] = useState(` function sum() {
-  return 1 + 1
+  const [code, setCode] = useState(`function sum() {
+  return a + b
 }`)
-
-  const [ review, setReview ] = useState(``)
+  const [review, setReview] = useState(``)
+  const [loading, setLoading] = useState(false) // loading state
 
   useEffect(() => {
     prism.highlightAll()
   }, [])
 
   async function reviewCode() {
-    const response = await axios.post('https://mern-code-reveiwer.onrender.com/ai/get-review', { code })
-    setReview(response.data)
+    setLoading(true) // start loading
+    try {
+      const response = await axios.post('https://mern-code-reveiwer.onrender.com/ai/get-review', { code })
+      setReview(response.data)
+    } catch (error) {
+      console.error("Error fetching review:", error)
+      setReview("Failed to get review. Please try again.")
+    } finally {
+      setLoading(false) // stop loading
+    }
   }
 
   return (
@@ -32,7 +42,7 @@ function App() {
           <div className="code">
             <Editor
               value={code}
-              onValueChange={code => setCode(code)}
+              onValueChange={setCode}
               highlight={code => prism.highlight(code, prism.languages.javascript, "javascript")}
               padding={10}
               style={{
@@ -47,20 +57,30 @@ function App() {
           </div>
           <div
             onClick={reviewCode}
-            className="review">Review</div>
+            className="review"
+            style={{
+              opacity: loading ? 0.6 : 1,
+              pointerEvents: loading ? 'none' : 'auto'
+            }}
+          >
+            {loading ? "Reviewing..." : "Review"}
+          </div>
         </div>
-        <div className="right">
-          <Markdown
-
-            rehypePlugins={[ rehypeHighlight ]}
-
-          >{review}</Markdown>
+        <div className="right" 
+        style={{ display: 'flex',  }}
+        >
+          {loading ? (
+            <div className="spinner"></div> // spinner while loading
+          ) : (
+            <Markdown rehypePlugins={[rehypeHighlight]}>
+              {review}
+            </Markdown>
+          )}
         </div>
       </main>
     </>
   )
 }
 
-
-
 export default App
+
